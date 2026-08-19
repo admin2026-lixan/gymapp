@@ -1,0 +1,68 @@
+@import "tailwindcss";
+
+/* Habilita el variante `dark:` controlado por clase (usado por next-themes) */
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  color-scheme: dark;
+
+  /* Tokens de tema — valores por defecto (modo oscuro). Se sobreescriben
+     bajo `.light` más abajo. El resto de la app usa estos tokens en vez de
+     colores neutral-* hardcodeados, para que el toggle de tema funcione en
+     toda la interfaz sin tocar cada componente. */
+  --app-bg: #0a0a0a;
+  --surface: #171717;
+  --surface-hover: #262626;
+  --border: #262626;
+  --border-strong: #404040;
+  --ink: #fafafa;
+  --ink-secondary: #d4d4d4;
+  --ink-tertiary: #a3a3a3;
+  --ink-muted: #737373;
+
+  /* Acentos de marca: emerald como principal, cyan como secundario/futurista. */
+  --accent: #34d399;
+  --accent-2: #22d3ee;
+}
+
+:root.light {
+  color-scheme: light;
+
+  --app-bg: #f7f7f6;
+  --surface: #ffffff;
+  --surface-hover: #f0f0ef;
+  --border: #e5e5e5;
+  --border-strong: #d4d4d4;
+  --ink: #171717;
+  --ink-secondary: #404040;
+  --ink-tertiary: #525252;
+  --ink-muted: #737373;
+
+  --accent: #10b981;
+  --accent-2: #0891b2;
+}
+
+@theme inline {
+  --font-sans: system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+/* Nota: los tokens de superficie/texto (--app-bg, --surface, --ink, etc.)
+   se usan directamente con la sintaxis arbitraria de Tailwind, p. ej.
+   `bg-[var(--surface)]`, `text-[var(--ink-muted)]`, `border-[var(--border)]`.
+   Así evitamos ambigüedad con las reglas de generación de utilidades de
+   `@theme` y mantenemos el mismo nombre de variable en CSS y en las clases. */
+
+body {
+  background:
+    radial-gradient(1200px 500px at 15% -10%, color-mix(in srgb, var(--accent) 10%, transparent), transparent 60%),
+    radial-gradient(900px 500px at 100% 0%, color-mix(in srgb, var(--accent-2) 8%, transparent), transparent 55%),
+    var(--app-bg);
+  background-attachment: fixed;
+  color: var(--ink);
+  font-family: var(--font-sans);
+}
+
+/* Halo sutil detrás de las insignias/íconos destacados, para el look "futurista". */
+.glow-emerald {
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 30%, transparent), 0 8px 24px -8px color-mix(in srgb, var(--accent) 45%, transparent);
+}
