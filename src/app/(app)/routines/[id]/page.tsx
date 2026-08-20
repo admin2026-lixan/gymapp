@@ -53,7 +53,8 @@ export default async function RoutineDetailPage({ params }: PageProps<"/routines
         exercises.map((e) => e.id)
       )
       .gte("created_at", startOfDay.toISOString());
-    doneIds = Array.from(new Set((todaySets ?? []).map((s) => s.exercise_id)));
+    const todaySetRows = (todaySets ?? []) as { exercise_id: string }[];
+    doneIds = Array.from(new Set(todaySetRows.map((s) => s.exercise_id)));
   }
 
   return (

@@ -56,11 +56,14 @@ export default async function DashboardPage() {
     .map(([week, v]) => ({ week, ...v }));
 
   // --- Peso corporal en el tiempo ---
-  const weightSeries = (metrics ?? [])
+  type MetricRow = { measured_at: string; weight_kg: number | null; body_fat_pct: number | null };
+  const metricRows = (metrics ?? []) as MetricRow[];
+
+  const weightSeries = metricRows
     .filter((m) => m.weight_kg != null)
     .map((m) => ({ date: m.measured_at, weight: m.weight_kg as number }));
 
-  const bodyFatSeries = (metrics ?? [])
+  const bodyFatSeries = metricRows
     .filter((m) => m.body_fat_pct != null)
     .map((m) => ({ date: m.measured_at, fat: m.body_fat_pct as number }));
 

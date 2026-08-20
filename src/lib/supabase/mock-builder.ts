@@ -141,6 +141,12 @@ export class MockQueryBuilder<T = unknown> implements PromiseLike<MockResult<T>>
     onfulfilled?: ((value: MockResult<T>) => TResult1 | PromiseLike<TResult1>) | null,
     onrejected?: ((reason: unknown) => TResult2 | PromiseLike<TResult2>) | null
   ): PromiseLike<TResult1 | TResult2> {
-    return this.executor(this.toOp()).then(onfulfilled, onrejected);
+    // El executor no conoce el `T` concreto de este builder (siempre resuelve
+    // `MockResult<unknown>`) — el `data` real ya viene con la forma correcta
+    // en tiempo de ejecución, así que el cast solo alinea el tipo estático.
+    return this.executor(this.toOp()).then(
+      onfulfilled as ((value: MockResult<unknown>) => TResult1 | PromiseLike<TResult1>) | null | undefined,
+      onrejected
+    );
   }
 }

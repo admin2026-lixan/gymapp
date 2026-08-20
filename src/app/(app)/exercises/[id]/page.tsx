@@ -21,7 +21,8 @@ export default async function ExerciseDetailPage({ params }: PageProps<"/exercis
     .eq("exercise_id", id)
     .order("created_at", { ascending: true });
 
-  const rows = sets ?? [];
+  type SetRow = { weight_kg: number | null; reps: number | null; set_number: number; created_at: string };
+  const rows = (sets ?? []) as SetRow[];
 
   // Volumen y peso máximo por día
   const byDay = new Map<string, { maxWeight: number; volume: number }>();
