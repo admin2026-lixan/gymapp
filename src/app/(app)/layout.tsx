@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { Dumbbell, Settings } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import BottomNav from "./bottom-nav";
+import BiometricGate from "@/components/biometric-gate";
 
 export default async function AppLayout({ children }: LayoutProps<"/">) {
   const supabase = await createClient();
@@ -15,6 +16,7 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
   }
 
   return (
+    <BiometricGate userId={user.id}>
     <div className="flex flex-1 flex-col">
       <header className="flex items-center justify-between px-4 py-3 border-b border-[var(--border)] sticky top-0 bg-[var(--app-bg)]/80 backdrop-blur-xl z-20">
         <span className="font-semibold tracking-tight flex items-center gap-2">
@@ -38,5 +40,6 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
 
       <BottomNav />
     </div>
+    </BiometricGate>
   );
 }
