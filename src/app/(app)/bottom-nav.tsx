@@ -3,12 +3,13 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
-import { Zap, ClipboardList, LayoutDashboard, Library, Ruler, type LucideIcon } from "lucide-react";
+import { Zap, ClipboardList, LayoutDashboard, Library, Ruler, Bot, type LucideIcon } from "lucide-react";
 
 const ITEMS: { href: string; icon: LucideIcon; label: string }[] = [
   { href: "/log", icon: Zap, label: "Registrar" },
   { href: "/routines", icon: ClipboardList, label: "Rutinas" },
   { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
+  { href: "/assistant", icon: Bot, label: "Asistente" },
   { href: "/exercises", icon: Library, label: "Ejercicios" },
   { href: "/metrics", icon: Ruler, label: "Medidas" },
 ];
@@ -18,7 +19,7 @@ export default function BottomNav() {
 
   return (
     <nav className="fixed bottom-0 inset-x-0 border-t border-[var(--border)] bg-[var(--app-bg)]/80 backdrop-blur-xl z-20 pb-[env(safe-area-inset-bottom)]">
-      <div className="max-w-lg mx-auto grid grid-cols-5">
+      <div className="max-w-lg mx-auto grid grid-cols-6">
         {ITEMS.map((item) => {
           const active = pathname?.startsWith(item.href);
           const Icon = item.icon;
