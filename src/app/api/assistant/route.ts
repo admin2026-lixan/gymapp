@@ -1,7 +1,7 @@
-import { NextResponse, type NextRequest } from "next/server";
+import { type NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { computeStats } from "@/lib/daily-tip";
-import { generateAssistantReply, type ChatMessage } from "@/lib/assistant";
+import { streamAssistantReply, type ChatMessage } from "@/lib/assistant";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -15,16 +15,16 @@ export async function POST(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+    return new Response(JSON.stringify({ error: "unauthorized" }), { status: 401 });
   }
 
   const body = await request.json().catch(() => null);
   const message = typeof body?.message === "string" ? body.message.trim() : "";
   if (!message) {
-    return NextResponse.json({ error: "missing message" }, { status: 400 });
+    return new Response(JSON.stringify({ error: "missing message" }), { status: 400 });
   }
   if (message.length > 2000) {
-    return NextResponse.json({ error: "message too long" }, { status: 400 });
+    return new Response(JSON.stringify({ error: "message too long" }), { status: 400 });
   }
 
   // Guarda el mensaje del usuario primero, así queda registrado aunque falle la IA.
@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
     .from("assistant_messages")
     .insert({ user_id: user.id, role: "user", content: message });
   if (insertUserError) {
-    return NextResponse.json({ error: "could not save message" }, { status: 500 });
+    return new Response(JSON.stringify({ error: "could not save message" }), { status: 500 });
   }
 
   const { data: historyRows } = await supabase
@@ -51,24 +51,48 @@ export async function POST(request: NextRequest) {
     }));
 
   const stats = await computeStats(supabase, user.id);
-  const reply = await generateAssistantReply(stats, history);
+  const firstName = (user.email ?? "").split("@")[0] || null;
 
-  if (!reply) {
-    return NextResponse.json(
-      { error: "El asistente no está disponible ahora mismo. Probá de nuevo en un rato." },
-      { status: 503 }
-    );
-  }
+  const encoder = new TextEncoder();
+  const stream = new ReadableStream({
+    async start(controller) {
+      let full: string | null = null;
+      try {
+        full = await streamAssistantReply(stats, firstName, history, (token) => {
+          controller.enqueue(encoder.encode(`data: ${JSON.stringify({ token })}\n\n`));
+        });
+      } catch {
+        full = null;
+      }
 
-  const { data: saved, error: insertAssistantError } = await supabase
-    .from("assistant_messages")
-    .insert({ user_id: user.id, role: "assistant", content: reply })
-    .select("id, role, content, created_at")
-    .single();
+      if (!full) {
+        controller.enqueue(
+          encoder.encode(
+            `data: ${JSON.stringify({
+              error: "El asistente no está disponible ahora mismo. Probá de nuevo en un rato.",
+            })}\n\n`
+          )
+        );
+        controller.close();
+        return;
+      }
 
-  if (insertAssistantError) {
-    return NextResponse.json({ error: "could not save reply" }, { status: 500 });
-  }
+      const { data: saved } = await supabase
+        .from("assistant_messages")
+        .insert({ user_id: user.id, role: "assistant", content: full })
+        .select("id, role, content, created_at")
+        .single();
 
-  return NextResponse.json({ message: saved });
+      controller.enqueue(encoder.encode(`data: ${JSON.stringify({ done: true, message: saved })}\n\n`));
+      controller.close();
+    },
+  });
+
+  return new Response(stream, {
+    headers: {
+      "Content-Type": "text/event-stream",
+      "Cache-Control": "no-cache",
+      Connection: "keep-alive",
+    },
+  });
 }

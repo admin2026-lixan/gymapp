@@ -1,5 +1,5 @@
-import AssistantClient from "./assistant-client";
+import { AssistantChat } from "@/components/assistant-chat";
 
 export default function AssistantPage() {
-  return <AssistantClient />;
+  return <AssistantChat />;
 }

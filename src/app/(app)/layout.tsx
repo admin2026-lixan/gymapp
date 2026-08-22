@@ -4,6 +4,7 @@ import { Dumbbell, Settings } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import BottomNav from "./bottom-nav";
 import BiometricGate from "@/components/biometric-gate";
+import { AssistantFab } from "@/components/assistant-fab";
 
 export default async function AppLayout({ children }: LayoutProps<"/">) {
   const supabase = await createClient();
@@ -39,6 +40,7 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
       <main className="flex-1 pb-24 px-4 pt-4 max-w-lg mx-auto w-full">{children}</main>
 
       <BottomNav />
+      <AssistantFab />
     </div>
     </BiometricGate>
   );
